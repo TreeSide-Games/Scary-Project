@@ -13,8 +13,12 @@ public class PlayerMovement : MonoBehaviour
     public float sensitivity;
     float mouseVerticalRotation;
 
+    bool isCrawling = false;
+    float upMotion = 0;
+
     Camera camera;
     CharacterController characterController;
+    CapsuleCollider capsuleCollider;
     // Start is called before the first frame update
     void Start()
     {
@@ -24,6 +28,7 @@ public class PlayerMovement : MonoBehaviour
 
         Cursor.visible = false;
         characterController = GetComponent<CharacterController>();
+        capsuleCollider = GetComponent<CapsuleCollider>();
     }
 
     // Update is called once per frame
@@ -31,6 +36,11 @@ public class PlayerMovement : MonoBehaviour
     {
         xAxis = Input.GetAxis("Horizontal");
         yAxis = Input.GetAxis("Vertical");
+
+        if(Input.GetKeyDown(KeyCode.C))
+        {
+            Crawle();
+        }
 
         
         //transform.position += new Vector3(xAxis, 0, 0) * speed * Time.deltaTime;
@@ -50,8 +60,42 @@ public class PlayerMovement : MonoBehaviour
 
         transform.Rotate(Vector3.up * mouseX);
 
-        Vector3 move = transform.right * xAxis + transform.forward * yAxis;
+        Vector3 move = transform.right * xAxis + transform.forward * yAxis + transform.up * upMotion;
 
         characterController.Move(move * speed * Time.deltaTime);
+
+        if (transform.position.y < 4.24f)
+        {
+            upMotion = 0;
+            transform.position = new Vector3(transform.position.x, 4.24f, transform.position.z);
+        }else if(transform.position.y > 5.24f)
+        {
+            upMotion = 0;
+            transform.position = new Vector3(transform.position.x, 5.24f, transform.position.z);
+        }
+    }
+
+    private void Crawle()
+    {
+        if(!isCrawling)
+        {
+            isCrawling = true;
+
+            characterController.height -= 2;
+            capsuleCollider.height -= 2;
+            upMotion = -2f;
+
+            speed -= 12;
+        }
+        else
+        {
+            isCrawling = false;
+
+            characterController.height += 2;
+            capsuleCollider.height += 2;
+            upMotion = 2f;
+
+            speed += 12;
+        }
     }
 }
