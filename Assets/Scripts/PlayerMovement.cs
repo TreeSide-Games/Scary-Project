@@ -7,6 +7,7 @@ public class PlayerMovement : MonoBehaviour
     float xAxis;
     float yAxis;
     public float speed;
+    private const float baseSpeed = 10;
 
     float mouseX;
     float mouseY;
@@ -22,7 +23,7 @@ public class PlayerMovement : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        speed = 15;
+        speed = baseSpeed;
         sensitivity = 150;
         camera = Camera.main;
 
@@ -37,10 +38,22 @@ public class PlayerMovement : MonoBehaviour
         xAxis = Input.GetAxis("Horizontal");
         yAxis = Input.GetAxis("Vertical");
 
+        if(Input.GetKeyDown(KeyCode.LeftShift))
+        {
+            speed = 18;
+        }
+
+        if(Input.GetKeyUp(KeyCode.LeftShift))
+        {
+            speed = baseSpeed;
+        }
+
         if(Input.GetKeyDown(KeyCode.C))
         {
             Crawle();
         }
+
+
 
         
         //transform.position += new Vector3(xAxis, 0, 0) * speed * Time.deltaTime;
@@ -85,7 +98,7 @@ public class PlayerMovement : MonoBehaviour
             capsuleCollider.height -= 2;
             upMotion = -2f;
 
-            speed -= 12;
+            speed = 3;
         }
         else
         {
@@ -95,7 +108,7 @@ public class PlayerMovement : MonoBehaviour
             capsuleCollider.height += 2;
             upMotion = 2f;
 
-            speed += 12;
+            speed = baseSpeed;
         }
     }
 }
