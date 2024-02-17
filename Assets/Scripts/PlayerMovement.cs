@@ -7,7 +7,7 @@ public class PlayerMovement : MonoBehaviour
     float xAxis;
     float yAxis;
     public float speed;
-    private const float baseSpeed = 10;
+    private const float baseSpeed = 15;
 
     float mouseX;
     float mouseY;
@@ -56,7 +56,7 @@ public class PlayerMovement : MonoBehaviour
             rigidbody.drag = 0;
 
         if(Input.GetKeyDown(KeyCode.LeftShift))
-            speed = 18;
+            speed = 25;
 
         if(Input.GetKeyUp(KeyCode.LeftShift))
             speed = baseSpeed;
@@ -64,30 +64,23 @@ public class PlayerMovement : MonoBehaviour
         if(Input.GetKeyDown(KeyCode.C))
             Crawle();
 
+
+        
         CameraMove();
 
-        Vector3 vel = new Vector3(rigidbody.velocity.x, 0, rigidbody.velocity.z);
-
-        if (vel.magnitude > speed)
+        if (Input.GetKeyDown(KeyCode.Space) && !isJumping && isGrounded)
         {
-            Vector3 limitetVel = vel.normalized * speed;
-            rigidbody.velocity = new Vector3(limitetVel.x, rigidbody.velocity.y, limitetVel.z);
+            Jump();
+
+            Invoke(nameof(ResetJump), 0.5f);
         }
 
-
+        FixSpeed();
     }
 
     private void FixedUpdate()
     {
         PlayerMove();
-        if (Input.GetKeyDown(KeyCode.Space) && !isJumping && isGrounded)
-        {
-            isJumping = true;
-            rigidbody.velocity = new Vector3(rigidbody.velocity.x, 0, rigidbody.velocity.z);
-            rigidbody.AddForce(transform.up * upForce, ForceMode.Impulse);
-
-            Invoke(nameof(ResetJump), 0.5f);
-        }
     }
 
     private void CameraMove()
@@ -141,8 +134,25 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    void Jump()
+    {
+        isJumping = true;
+        rigidbody.velocity = new Vector3(rigidbody.velocity.x, 0, rigidbody.velocity.z);
+        rigidbody.AddForce(transform.up * upForce, ForceMode.Impulse);
+    }
+
     void ResetJump()
     {
         isJumping = false;
+    }
+
+    void FixSpeed()
+    {
+        Vector3 vel = new Vector3(rigidbody.velocity.x, 0, rigidbody.velocity.z);
+        if (vel.magnitude > speed)
+        {
+            Vector3 limitetVel = vel.normalized * speed;
+            rigidbody.velocity = new Vector3(limitetVel.x, rigidbody.velocity.y, limitetVel.z);
+        }
     }
 }
