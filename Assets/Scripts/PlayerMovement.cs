@@ -55,20 +55,20 @@ public class PlayerMovement : MonoBehaviour
         else
             rigidbody.drag = 0;
 
-        if(Input.GetKeyDown(KeyCode.LeftShift))
+        if(Input.GetKeyDown(KeyCode.LeftShift) && isGrounded && !isCrawling)
             speed = 25;
 
-        if(Input.GetKeyUp(KeyCode.LeftShift))
+        if(Input.GetKeyUp(KeyCode.LeftShift) && !isCrawling)
             speed = baseSpeed;
 
-        if(Input.GetKeyDown(KeyCode.C))
+        if(Input.GetKeyDown(KeyCode.C) && isGrounded)
             Crawle();
 
 
         
         CameraMove();
 
-        if (Input.GetKeyDown(KeyCode.Space) && !isJumping && isGrounded)
+        if (Input.GetKeyDown(KeyCode.Space) && !isJumping && isGrounded && !isCrawling)
         {
             Jump();
 
