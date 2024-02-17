@@ -14,56 +14,84 @@ public class PlayerMovement : MonoBehaviour
     public float sensitivity;
     float mouseVerticalRotation;
 
+    float playerHeight;
+    public LayerMask groundLayer;
+    bool isGrounded;
+    float groundDrag;
+
     bool isCrawling = false;
-    float upMotion = 0;
+    bool isJumping = false;
+    float upForce = 0;
+    float airMultiply = 0.4f;
 
     Camera camera;
-    CharacterController characterController;
     CapsuleCollider capsuleCollider;
+    Rigidbody rigidbody;
     // Start is called before the first frame update
     void Start()
     {
         speed = baseSpeed;
         sensitivity = 150;
-        camera = Camera.main;
 
+        camera = Camera.main;
         Cursor.visible = false;
-        characterController = GetComponent<CharacterController>();
+
         capsuleCollider = GetComponent<CapsuleCollider>();
+
+        rigidbody = GetComponent<Rigidbody>();
+
+        playerHeight = capsuleCollider.height;
+        groundDrag = 10;
+        upForce = 15;
     }
 
     // Update is called once per frame
     void Update()
     {
-        xAxis = Input.GetAxis("Horizontal");
-        yAxis = Input.GetAxis("Vertical");
+        isGrounded = Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.2f, groundLayer);
+
+        if (isGrounded)
+            rigidbody.drag = groundDrag;
+        else
+            rigidbody.drag = 0;
 
         if(Input.GetKeyDown(KeyCode.LeftShift))
-        {
             speed = 18;
-        }
 
         if(Input.GetKeyUp(KeyCode.LeftShift))
-        {
             speed = baseSpeed;
-        }
 
         if(Input.GetKeyDown(KeyCode.C))
-        {
             Crawle();
+
+        CameraMove();
+
+        Vector3 vel = new Vector3(rigidbody.velocity.x, 0, rigidbody.velocity.z);
+
+        if (vel.magnitude > speed)
+        {
+            Vector3 limitetVel = vel.normalized * speed;
+            rigidbody.velocity = new Vector3(limitetVel.x, rigidbody.velocity.y, limitetVel.z);
         }
 
 
+    }
 
-        
-        //transform.position += new Vector3(xAxis, 0, 0) * speed * Time.deltaTime;
-        
-        //transform.position += new Vector3(0, 0, yAxis) * speed * Time.deltaTime;
-        
-        //camera.transform.LookAt(Input.mousePosition,Vector3.up);
+    private void FixedUpdate()
+    {
+        PlayerMove();
+        if (Input.GetKeyDown(KeyCode.Space) && !isJumping && isGrounded)
+        {
+            isJumping = true;
+            rigidbody.velocity = new Vector3(rigidbody.velocity.x, 0, rigidbody.velocity.z);
+            rigidbody.AddForce(transform.up * upForce, ForceMode.Impulse);
 
-        //transform.up = camera.transform.forward;
+            Invoke(nameof(ResetJump), 0.5f);
+        }
+    }
 
+    private void CameraMove()
+    {
         mouseX = Input.GetAxis("Mouse X") * sensitivity * Time.deltaTime;
         mouseY = Input.GetAxis("Mouse Y") * sensitivity * Time.deltaTime;
 
@@ -72,19 +100,24 @@ public class PlayerMovement : MonoBehaviour
         camera.transform.localEulerAngles = new Vector3(mouseVerticalRotation, 0, 0);
 
         transform.Rotate(Vector3.up * mouseX);
+    }
 
-        Vector3 move = transform.right * xAxis + transform.forward * yAxis + transform.up * upMotion;
+    private void PlayerMove()
+    {
+        xAxis = Input.GetAxis("Horizontal");
+        yAxis = Input.GetAxis("Vertical");
 
-        characterController.Move(move * speed * Time.deltaTime);
-
-        if (transform.position.y < 4.24f)
+        Vector3 move = transform.right * xAxis + transform.forward * yAxis;
+        //characterController.Move(move * speed * Time.deltaTime);
+        if (isGrounded)
         {
-            upMotion = 0;
-            transform.position = new Vector3(transform.position.x, 4.24f, transform.position.z);
-        }else if(transform.position.y > 5.24f)
+            rigidbody.AddForce(move.normalized * speed * 10, ForceMode.Force);
+
+        }
+        else if (!isGrounded)
         {
-            upMotion = 0;
-            transform.position = new Vector3(transform.position.x, 5.24f, transform.position.z);
+            rigidbody.AddForce(move.normalized * baseSpeed * 10 * airMultiply, ForceMode.Force);
+
         }
     }
 
@@ -94,21 +127,22 @@ public class PlayerMovement : MonoBehaviour
         {
             isCrawling = true;
 
-            characterController.height -= 2;
             capsuleCollider.height -= 2;
-            upMotion = -2f;
-
+            playerHeight = capsuleCollider.height;
             speed = 3;
         }
         else
         {
             isCrawling = false;
 
-            characterController.height += 2;
             capsuleCollider.height += 2;
-            upMotion = 2f;
-
+            playerHeight = capsuleCollider.height;
             speed = baseSpeed;
         }
+    }
+
+    void ResetJump()
+    {
+        isJumping = false;
     }
 }
